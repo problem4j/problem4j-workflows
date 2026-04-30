@@ -27,6 +27,7 @@ Builds the project with Gradle across multiple Java versions.
 ```yaml
 jobs:
   build:
+    name: Build (Java ${{ inputs.java-version }})
     strategy:
       fail-fast: false
       matrix:
@@ -53,6 +54,9 @@ Generates and submits the Gradle dependency graph to GitHub for dependency revie
 ```yaml
 jobs:
   dependency-submission:
+    name: Dependency Submission
+    permissions:
+      contents: write
     uses: problem4j/problem4j-workflows/.github/workflows/gradle-dependency-submission.yml@main
     with:
       java-version: 17
@@ -89,6 +93,7 @@ The `publish-task` depends on the repository structure:
 ```yaml
 jobs:
   publish-release:
+    name: Publish Release
     uses: problem4j/problem4j-workflows/.github/workflows/gradle-publish-release.yml@main
     with:
       publish-task: publishAllPublicationsToCentralPortal
