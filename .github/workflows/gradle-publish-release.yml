@@ -1,0 +1,71 @@
+name: Gradle Publish Release
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: "Java version to build with"
+        required: true
+        type: number
+      publish-task:
+        description: "Gradle publish task to run"
+        required: true
+        type: string
+    secrets:
+      SIGNING_KEY:
+        required: true
+      SIGNING_PASSWORD:
+        required: true
+      PUBLISHING_USERNAME:
+        required: true
+      PUBLISHING_PASSWORD:
+        required: true
+
+jobs:
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: "${{ inputs.java-version }}"
+          distribution: "temurin"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
+      # Not using cache from setup-gradle for now due to license change.
+      # See: https://blog.gradle.org/github-actions-for-gradle-v6
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-publish-release-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-publish-release-${{ runner.os }}-java-${{ inputs.java-version }}-
+
+      - name: Publish Release
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          PUBLISHING_USERNAME: ${{ secrets.PUBLISHING_USERNAME }}
+          PUBLISHING_PASSWORD: ${{ secrets.PUBLISHING_PASSWORD }}
+          GRADLE_OPTS: >-
+            -Dorg.gradle.configuration-cache=false
+            -Dorg.gradle.daemon=false
+            -Dorg.gradle.parallel=false
+            -Dorg.gradle.workers.max=1
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"  # removes leading 'v' from tag name
+          echo "::notice::publishing version $VERSION"
+          ./gradlew -Pversion="$VERSION" -Psign -Pspotless.license-year-enabled ${{ inputs.publish-task }}

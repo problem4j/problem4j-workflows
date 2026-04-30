@@ -1,0 +1,51 @@
+name: Gradle Build
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: "Java version to build with"
+        required: true
+        type: number
+
+jobs:
+  build:
+    name: Build (Java ${{ inputs.java-version }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: "${{ inputs.java-version }}"
+          distribution: "temurin"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
+      # Not using cache from setup-gradle for now due to license change.
+      # See: https://blog.gradle.org/github-actions-for-gradle-v6
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-build-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-build-${{ runner.os }}-java-${{ inputs.java-version }}-
+
+      - name: Gradle Build
+        env:
+          GRADLE_OPTS: >-
+            -Dorg.gradle.configuration-cache=false
+            -Dorg.gradle.daemon=false
+            -Dorg.gradle.parallel=false
+            -Dorg.gradle.workers.max=1
+        run: ./gradlew build

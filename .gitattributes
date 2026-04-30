@@ -1,0 +1,10 @@
+# --- Text and line endings ---
+# Force all text files to use LF line endings
+* text=auto eol=lf
+
+# --- Configuration / properties ---
+*.yml      text
+*.yaml     text
+
+# --- Markdown / documentation ---
+*.md       text

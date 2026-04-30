@@ -1,0 +1,50 @@
+name: Dependency Submission
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: "Java version to build with"
+        required: true
+        type: number
+
+jobs:
+  dependency-submission:
+    name: Dependency Submission
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: "${{ inputs.java-version }}"
+          distribution: "temurin"
+
+      # Not using cache from setup-gradle for now due to license change.
+      # See: https://blog.gradle.org/github-actions-for-gradle-v6
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-dependency-submission-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-dependency-submission-${{ runner.os }}-java-${{ inputs.java-version }}-
+
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v6
+        env:
+          GRADLE_OPTS: >-
+            -Dorg.gradle.configuration-cache=false
+            -Dorg.gradle.daemon=false
+            -Dorg.gradle.parallel=false
+            -Dorg.gradle.workers.max=1
+        with:
+          cache-disabled: true
+          dependency-graph-exclude-projects: ":buildSrc"
+          dependency-graph-exclude-configurations: ".*[Tt]est(Compile|Runtime)Classpath"
