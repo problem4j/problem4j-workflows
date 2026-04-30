@@ -18,9 +18,9 @@ See workflow - [link](.github/workflows/gradle-build.yml).
 
 Builds the project with Gradle across multiple Java versions.
 
-| Input          | Type     | Required | Description                                         |
-|----------------|----------|----------|-----------------------------------------------------|
-| `java-version` | `number` | yes      | Java version to build with (e.g. `17`, `21`, `25`). |
+| Input          | Type     | Required | Default | Description                                         |
+|----------------|----------|----------|---------|-----------------------------------------------------|
+| `java-version` | `number` | no       | `25`    | Java version to build with (e.g. `17`, `21`, `25`). |
 
 **Usage:**
 
@@ -45,9 +45,9 @@ See workflow - [link](.github/workflows/gradle-dependency-submission.yml).
 
 Generates and submits the Gradle dependency graph to GitHub for dependency review and Dependabot alerts.
 
-| Input          | Type     | Required | Description               |
-|----------------|----------|----------|---------------------------|
-| `java-version` | `number` | yes      | Java version to use.      |
+| Input          | Type     | Required | Default | Description          |
+|----------------|----------|----------|---------|----------------------|
+| `java-version` | `number` | no       | `25`    | Java version to use. |
 
 **Usage:**
 
@@ -58,8 +58,6 @@ jobs:
     permissions:
       contents: write
     uses: problem4j/problem4j-workflows/.github/workflows/gradle-dependency-submission.yml@main
-    with:
-      java-version: 17
 ```
 
 ---
@@ -71,10 +69,10 @@ See workflow - [link](.github/workflows/gradle-publish-release.yml).
 Publishes a release to Maven Central using the [nmcp](https://github.com/GradleUp/nmcp) Gradle 
 plugin. Triggered by a version tag push; extracts the version from the tag name (strips the leading `v`).
 
-| Input          | Type     | Required | Description                 |
-|----------------|----------|----------|-----------------------------|
-| `java-version` | `number` | yes      | Java version to use.        |
-| `publish-task` | `string` | yes      | Gradle publish task to run. |
+| Input          | Type     | Required | Default | Description                 |
+|----------------|----------|----------|---------|-----------------------------|
+| `java-version` | `number` | no       | `25`    | Java version to use.        |
+| `publish-task` | `string` | yes      | —       | Gradle publish task to run. |
 
 | Secret                | Required | Description                                 |
 |-----------------------|----------|---------------------------------------------|

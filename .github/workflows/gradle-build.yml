@@ -5,8 +5,9 @@ on:
     inputs:
       java-version:
         description: "Java version to build with"
-        required: true
+        required: false
         type: number
+        default: 25
 
 jobs:
   build:
