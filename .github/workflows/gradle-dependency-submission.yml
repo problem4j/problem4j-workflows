@@ -47,5 +47,4 @@ jobs:
             -Dorg.gradle.workers.max=1
         with:
           cache-disabled: true
-          dependency-graph-exclude-projects: ":buildSrc"
           dependency-graph-exclude-configurations: ".*[Tt]est(Compile|Runtime)Classpath"
