@@ -13,16 +13,15 @@ on:
         required: false
         type: boolean
         default: false
-      codecov-token:
-        description: "Access token to Codecov"
-        required: false
-        type: string
-        default: ""
       codecov-files:
         description: "Paths to XML code coverage reports"
         required: false
         type: string
         default: ""
+    secrets:
+      CODECOV_TOKEN:
+        description: "Access token to Codecov"
+        required: false
 
 jobs:
   build:
@@ -70,4 +69,4 @@ jobs:
         with:
           disable_search: true
           files: ${{ inputs.codecov-files }}
-          token: ${{ inputs.codecov-token }}
+          token: ${{ secrets.CODECOV_TOKEN }}
