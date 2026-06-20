@@ -18,9 +18,11 @@ See workflow - [link](.github/workflows/gradle-build.yml).
 
 Builds the project with Gradle across multiple Java versions.
 
-| Input          | Type     | Required | Default | Description                                         |
-|----------------|----------|----------|---------|-----------------------------------------------------|
-| `java-version` | `number` | no       | `25`    | Java version to build with (e.g. `17`, `21`, `25`). |
+| Input             | Type      | Required | Default | Description                                         |
+|-------------------|-----------|----------|---------|-----------------------------------------------------|
+| `java-version`    | `number`  | no       | `25`    | Java version to build with (e.g. `17`, `21`, `25`). |
+| `codecov-enabled` | `boolean` | no       | `false` | Whether to upload JaCoCo report to Codecov.         |
+| `codecov-files`   | `string`  | no       | `""`    | JaCoCo files to upload to Codecov.                  |
 
 **Usage:**
 
@@ -35,6 +37,8 @@ jobs:
     uses: problem4j/problem4j-workflows/.github/workflows/gradle-build.yml@main
     with:
       java-version: ${{ matrix.java }}
+      codecov-enabled: ${{ matrix.java == "25" }}
+      codecov-files: "build/reports/jacoco/test/jacocoTestReport.xml"
 ```
 
 ---

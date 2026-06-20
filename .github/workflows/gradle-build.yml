@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      codecov-files:
+        description: "Paths to XML code coverage reports"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build:
@@ -55,9 +60,9 @@ jobs:
         run: ./gradlew build
 
       - name: Upload JaCoCo report to Codecov
-        if: inputs.codecov-enabled
+        if: ${{ inputs.codecov-enabled }}
         uses: codecov/codecov-action@v7
         with:
-          files: ./build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+          files: ${{ inputs.codecov-files }}
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
