@@ -8,6 +8,11 @@ on:
         required: false
         type: number
         default: 25
+      codecov-enabled:
+        description: "Whether to upload coverage report to Codecov"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -50,3 +55,11 @@ jobs:
             -Dorg.gradle.parallel=false
             -Dorg.gradle.workers.max=1
         run: ./gradlew build
+
+      - name: Upload JaCoCo report to Codecov
+        if: inputs.codecov-enabled
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
