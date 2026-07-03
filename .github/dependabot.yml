@@ -6,6 +6,3 @@ updates:
       interval: "monthly"
     target-branch: main
     open-pull-requests-limit: 10
-    labels:
-      - "target: latest"
-      - "dependencies"
