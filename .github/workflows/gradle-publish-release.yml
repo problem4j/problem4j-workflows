@@ -60,6 +60,7 @@ jobs:
           PUBLISHING_USERNAME: ${{ secrets.PUBLISHING_USERNAME }}
           PUBLISHING_PASSWORD: ${{ secrets.PUBLISHING_PASSWORD }}
           GRADLE_OPTS: >-
+            -Dorg.gradle.caching=false
             -Dorg.gradle.configuration-cache=false
             -Dorg.gradle.daemon=false
             -Dorg.gradle.parallel=false
@@ -67,4 +68,4 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"  # removes leading 'v' from tag name
           echo "::notice::publishing version $VERSION"
-          ./gradlew -Pversion="$VERSION" -Psign -Pspotless.license-year-enabled ${{ inputs.publish-task }}
+          ./gradlew -Pversion="$VERSION" -Psign ${{ inputs.publish-task }}
