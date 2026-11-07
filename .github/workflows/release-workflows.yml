@@ -1,0 +1,93 @@
+# Manually triggered release of this repository, not a reusable workflow. Releases are plain, immutable git tags - no
+# GitHub releases are created and no major version tags (vX) are moved, so callers reference exact vX.Y.Z tags.
+#
+# 1. Compute Version - bumps the chosen part (patch, minor or major) of the highest vX.Y.Z git tag; the first release
+#    bumps from 0.0.0 (v0.0.1, v0.1.0 or v1.0.0). Refuses to run outside of main, on an already released commit, or
+#    when the tag already exists.
+# 2. Push Tag - creates the annotated vX.Y.Z git tag ("Release X.Y.Z") on the current commit and pushes it.
+
+name: Release Workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version part to bump"
+        type: choice
+        options:
+          - "patch"
+          - "minor"
+          - "major"
+        default: "patch"
+
+concurrency:
+  group: release-workflows
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  release-workflows:
+    name: Release Workflows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Compute Version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          set -euo pipefail
+          release_tag='^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases can only be made from main, got $GITHUB_REF"
+            exit 1
+          fi
+
+          released=$(git tag --points-at HEAD | grep -E "$release_tag" || true)
+          if [ -n "$released" ]; then
+            echo "::error::Commit $GITHUB_SHA is already released as $released"
+            exit 1
+          fi
+
+          highest=$(git tag -l | grep -E "$release_tag" | sort -V | tail -n 1 || true)
+          echo "Highest release: ${highest:-none}"
+
+          IFS=. read -r major minor patch <<< "${highest#v}"
+          major="${major:-0}" minor="${minor:-0}" patch="${patch:-0}"
+          case "$BUMP" in
+            major) version="$((major + 1)).0.0" ;;
+            minor) version="$major.$((minor + 1)).0" ;;
+            patch) version="$major.$minor.$((patch + 1))" ;;
+          esac
+          tag="v$version"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::Tag $tag already exists"
+            exit 1
+          fi
+
+          echo "::notice::Releasing $tag from commit $GITHUB_SHA (previous: ${highest:-none})"
+          {
+            echo "version=$version"
+            echo "tag=$tag"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Push Tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "$TAG" --message "Release $VERSION" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+          echo "Pushed annotated tag $TAG"

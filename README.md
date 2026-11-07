@@ -1,21 +1,14 @@
 # Problem4J Workflows
 
-Reusable GitHub Actions workflows shared across all [`problem4j`](https://github.com/problem4j)
-repositories.
+Reusable GitHub Actions workflows shared across all [`problem4j`](https://github.com/problem4j) repositories.
 
 ## Table of Contents
 
-- [Versioning](#versioning)
 - [Workflows](#workflows)
   - [ci.yml](#ciyml)
   - [gradle-dependency-submission.yml](#gradle-dependency-submissionyml)
   - [release.yml](#releaseyml)
-
-## Versioning
-
-Workflows are versioned with immutable `vX.Y.Z` Git tags. Tags are never moved, so callers must reference an exact
-release tag (e.g. `@v1.0.0`). A new major version means breaking changes for callers, such as renamed or removed
-workflows, inputs or secrets.
+- [Versioning](#versioning)
 
 ## Workflows
 
@@ -119,3 +112,19 @@ jobs:
 
 Setting `secrets: inherit` forwards all secrets from the calling workflow to the reusable workflow
 automatically, without mapping each one individually.
+
+## Versioning
+
+Workflows are versioned with immutable `vX.Y.Z` Git tags. Tags are never moved, so callers must reference an exact
+release tag (e.g. `@v1.0.0`). A new major version means breaking changes for callers, such as renamed or removed
+workflows, inputs or secrets.
+
+New releases are made with `release-workflows.yml` workflow, triggered manually from `main` branch with the version
+part to bump (`patch`, `minor` or `major`). It computes the next version from the highest `vX.Y.Z` tag and pushes an
+annotated tag. No GitHub releases are created. Run it from the [workflow page][release-workflows] (**Run workflow**
+button).
+
+GitHub requires reusable workflows to reside in `.github/workflows/` directory. All workflows there are reusable ones
+(triggered only by `workflow_call`), except for `release-workflows.yml`, which releases this repository.
+
+[release-workflows]: https://github.com/problem4j/problem4j-workflows/actions/workflows/release-workflows.yml
