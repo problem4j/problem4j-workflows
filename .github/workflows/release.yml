@@ -1,4 +1,4 @@
-name: Gradle Publish Release
+name: Release
 
 on:
   workflow_call:
@@ -49,9 +49,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-publish-release-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          key: release-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
-            gradle-publish-release-${{ runner.os }}-java-${{ inputs.java-version }}-
+            release-${{ runner.os }}-java-${{ inputs.java-version }}-
 
       - name: Publish Release
         env:

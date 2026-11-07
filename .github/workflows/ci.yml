@@ -1,4 +1,4 @@
-name: Gradle Build
+name: CI
 
 on:
   workflow_call:
@@ -8,6 +8,16 @@ on:
         required: false
         type: number
         default: 25
+      code-style-enabled:
+        description: "Whether to run code style check step"
+        required: false
+        type: boolean
+        default: true
+      code-style-task:
+        description: "Gradle task verifying code style, excluded from build step and run in code style check step"
+        required: false
+        type: string
+        default: "spotlessCheck"
       codecov-enabled:
         description: "Whether to upload coverage report to Codecov"
         required: false
@@ -50,9 +60,20 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-build-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          key: ci-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml') }}
           restore-keys: |
-            gradle-build-${{ runner.os }}-java-${{ inputs.java-version }}-
+            ci-${{ runner.os }}-java-${{ inputs.java-version }}-
+
+      - name: Gradle Code Style Check
+        if: ${{ inputs.code-style-enabled }}
+        env:
+          GRADLE_OPTS: >-
+            -Dorg.gradle.caching=false
+            -Dorg.gradle.configuration-cache=false
+            -Dorg.gradle.daemon=false
+            -Dorg.gradle.parallel=false
+            -Dorg.gradle.workers.max=1
+        run: ./gradlew ${{ inputs.code-style-task }}
 
       - name: Gradle Build
         env:
@@ -62,7 +83,7 @@ jobs:
             -Dorg.gradle.daemon=false
             -Dorg.gradle.parallel=false
             -Dorg.gradle.workers.max=1
-        run: ./gradlew build
+        run: ./gradlew build -x ${{ inputs.code-style-task }}
 
       - name: Upload JaCoCo report to Codecov
         if: ${{ inputs.codecov-enabled }}

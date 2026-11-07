@@ -5,40 +5,55 @@ repositories.
 
 ## Table of Contents
 
+- [Versioning](#versioning)
 - [Workflows](#workflows)
-  - [gradle-build.yml](#gradle-buildyml)
+  - [ci.yml](#ciyml)
   - [gradle-dependency-submission.yml](#gradle-dependency-submissionyml)
-  - [gradle-publish-release.yml](#gradle-publish-releaseyml)
+  - [release.yml](#releaseyml)
+
+## Versioning
+
+Workflows are versioned with immutable `vX.Y.Z` Git tags. Tags are never moved, so callers must reference an exact
+release tag (e.g. `@v1.0.0`). A new major version means breaking changes for callers, such as renamed or removed
+workflows, inputs or secrets.
 
 ## Workflows
 
-### `gradle-build.yml`
+### `ci.yml`
 
-See workflow - [link](.github/workflows/gradle-build.yml).
+See workflow - [link](.github/workflows/ci.yml).
 
-Builds the project with Gradle across multiple Java versions.
+Builds the project with Gradle. Code style check runs as a separate, conditional step before the build, which allows
+enabling it only on selected Java versions (formatters such as `google-java-format` resolve to different versions
+depending on Java version, which may result in different formatting). The code style task is excluded from the build
+step.
 
-| Input             | Type      | Required | Default | Description                                         |
-|-------------------|-----------|----------|---------|-----------------------------------------------------|
-| `java-version`    | `number`  | no       | `25`    | Java version to build with (e.g. `17`, `21`, `25`). |
-| `codecov-enabled` | `boolean` | no       | `false` | Whether to upload JaCoCo report to Codecov.         |
-| `codecov-files`   | `string`  | no       | `""`    | JaCoCo files to upload to Codecov.                  |
+| Input                | Type      | Required | Default         | Description                                         |
+|----------------------|-----------|----------|-----------------|-----------------------------------------------------|
+| `java-version`       | `number`  | no       | `25`            | Java version to build with (e.g. `17`, `21`, `25`). |
+| `code-style-enabled` | `boolean` | no       | `true`          | Whether to run code style check step.               |
+| `code-style-task`    | `string`  | no       | `spotlessCheck` | Gradle task verifying code style.                   |
+| `codecov-enabled`    | `boolean` | no       | `false`         | Whether to upload JaCoCo report to Codecov.         |
+| `codecov-files`      | `string`  | no       | `""`            | JaCoCo files to upload to Codecov.                  |
 
 **Usage:**
 
 ```yaml
 jobs:
   build:
-    name: Build (Java ${{ inputs.java-version }})
+    name: Build (Java ${{ matrix.java }})
     strategy:
       fail-fast: false
       matrix:
         java: [17, 21, 25]
-    uses: problem4j/problem4j-workflows/.github/workflows/gradle-build.yml@main
+    uses: problem4j/problem4j-workflows/.github/workflows/ci.yml@v1.0.0
     with:
       java-version: ${{ matrix.java }}
-      codecov-enabled: ${{ matrix.java == "25" }}
+      code-style-enabled: ${{ matrix.java >= 21 }}
+      codecov-enabled: ${{ matrix.java == 25 }}
       codecov-files: "build/reports/jacoco/test/jacocoTestReport.xml"
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 ```
 
 ---
@@ -61,14 +76,14 @@ jobs:
     name: Dependency Submission
     permissions:
       contents: write
-    uses: problem4j/problem4j-workflows/.github/workflows/gradle-dependency-submission.yml@main
+    uses: problem4j/problem4j-workflows/.github/workflows/gradle-dependency-submission.yml@v1.0.0
 ```
 
 ---
 
-### `gradle-publish-release.yml`
+### `release.yml`
 
-See workflow - [link](.github/workflows/gradle-publish-release.yml).
+See workflow - [link](.github/workflows/release.yml).
 
 Publishes a release to Maven Central using the [nmcp](https://github.com/GradleUp/nmcp) Gradle 
 plugin. Triggered by a version tag push; extracts the version from the tag name (strips the leading `v`).
@@ -96,7 +111,7 @@ The `publish-task` depends on the repository structure:
 jobs:
   publish-release:
     name: Publish Release
-    uses: problem4j/problem4j-workflows/.github/workflows/gradle-publish-release.yml@main
+    uses: problem4j/problem4j-workflows/.github/workflows/release.yml@v1.0.0
     with:
       publish-task: publishAllPublicationsToCentralPortal
     secrets: inherit
