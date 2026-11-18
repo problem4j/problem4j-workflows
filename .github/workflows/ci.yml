@@ -51,18 +51,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-disabled: true
-
-      - name: Cache Gradle
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ci-${{ runner.os }}-java-${{ inputs.java-version }}-${{ hashFiles('**/gradle-wrapper.properties', '**/libs.versions.toml') }}
-          restore-keys: |
-            ci-${{ runner.os }}-java-${{ inputs.java-version }}-
 
       - name: Gradle Code Style Check
         if: ${{ inputs.code-style-enabled }}
